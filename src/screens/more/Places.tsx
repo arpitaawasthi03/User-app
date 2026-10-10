@@ -1,3 +1,4 @@
+import { useState } from "react";
 import FlowHeader from "../../components/FlowHeader";
 import Button from "../../components/Button";
 import Icon from "../../components/Icon";
@@ -11,7 +12,40 @@ interface PlacesProps {
 
 export default function Places({ mode }: PlacesProps) {
   const { back, push } = useNav();
-  const { state, setDefaultPlace, setRide, setCourier, removePlace, showToast } = useApp();
+  const { state, setDefaultPlace, setRide, setCourier, addPlace, removePlace, showToast } = useApp();
+  const [detecting, setDetecting] = useState(false);
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      showToast("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setDetecting(true);
+    showToast("Detecting GPS location...");
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const newPlace = addPlace({
+          label: "Current Location",
+          line: `${latitude.toFixed(4)}° N, ${longitude.toFixed(4)}° E`,
+          area: "GPS Coordinates",
+          icon: "pin",
+          coords: { lat: latitude, lng: longitude },
+        });
+        setDetecting(false);
+        handleSelectPlace(newPlace.id);
+        showToast("📍 Live GPS location saved and selected");
+      },
+      (err) => {
+        setDetecting(false);
+        console.warn("GPS error:", err);
+        showToast("Location access denied. Please select from saved addresses.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   const handleSelectPlace = (placeId: string) => {
     switch (mode) {
@@ -85,6 +119,30 @@ export default function Places({ mode }: PlacesProps) {
       </div>
 
       <div className="more-list">
+        <button
+          type="button"
+          onClick={handleUseCurrentLocation}
+          disabled={detecting}
+          style={{
+            background: "rgba(224, 90, 15, 0.08)",
+            border: "1px solid rgba(224, 90, 15, 0.3)",
+            marginBottom: 10,
+          }}
+        >
+          <span style={{ background: "var(--accent)", color: "#fff" }}>
+            <Icon name="pin" size={16} />
+          </span>
+          <div style={{ flex: 1 }}>
+            <strong style={{ fontSize: 11, display: "block", color: "var(--accent)" }}>
+              {detecting ? "Detecting GPS location..." : "Use current location (GPS)"}
+            </strong>
+            <small style={{ fontSize: 9, color: "var(--muted)", display: "block" }}>
+              Enable device location for precise real-time mapping
+            </small>
+          </div>
+          <Icon name="arrow" size={17} />
+        </button>
+
         {state.places.map((place) => {
           const isSelected = place.id === activeId;
           return (

@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import MapArt from "../../components/MapArt";
 import Logo from "../../components/Logo";
 import Button from "../../components/Button";
 import Icon from "../../components/Icon";
-import { PARTNER } from "../../data/demo";
+import type { EtaResult } from "../../components/GoogleMap";
+import { RESTAURANTS, GROCERY_HUB, PARTNER } from "../../data/demo";
+import { PRESET_COORDS, type LatLng } from "../../lib/googleMaps";
 import { useNav } from "../../navigation/Navigation";
 import { useApp } from "../../state/AppState";
 
@@ -16,9 +18,54 @@ export default function OrderStatus({ orderId, initialView = "confirmed" }: Orde
   const { push } = useNav();
   const { state, setOrderStatus, showToast } = useApp();
   const [view, setView] = useState<"confirmed" | "tracking">(initialView);
+  const [liveEta, setLiveEta] = useState<EtaResult | null>(null);
 
   const order = state.orders.find((o) => o.id === orderId) ?? state.orders[0];
   const isRide = order?.service === "rides";
+
+  // Fetch restaurant from mock data
+  const restaurant = useMemo(() => {
+    if (order?.service === "food") {
+      return (
+        RESTAURANTS.find(
+          (r) =>
+            r.name.toLowerCase() === order.title?.toLowerCase() ||
+            r.id === (order as any).storeId
+        ) || RESTAURANTS[0]
+      );
+    }
+    return null;
+  }, [order]);
+
+  // Destination from user's current place
+  const userPlace = state.places.find((p) => p.id === state.defaultPlaceId) ?? state.places[0];
+  const destinationCoords: LatLng = useMemo(() => {
+    if (userPlace?.coords) {
+      return { ...userPlace.coords, label: userPlace.label };
+    }
+    return PRESET_COORDS.home;
+  }, [userPlace]);
+
+  // Origin coords based on restaurant from mock data, grocery hub, or preset
+  const originCoords: LatLng = useMemo(() => {
+    if (restaurant) {
+      return { ...restaurant.coords, label: restaurant.name };
+    }
+    if (order?.service === "grocery") {
+      return { ...GROCERY_HUB.coords, label: GROCERY_HUB.name };
+    }
+    if (isRide) {
+      return PRESET_COORDS.home;
+    }
+    return PRESET_COORDS.aminabad;
+  }, [restaurant, order?.service, isRide]);
+
+  // Driver position along the route
+  const driverCoords: LatLng = useMemo(() => {
+    const lat = originCoords.lat * 0.45 + destinationCoords.lat * 0.55;
+    const lng = originCoords.lng * 0.45 + destinationCoords.lng * 0.55;
+    return { lat, lng, label: `${PARTNER.name} (Driver)` };
+  }, [originCoords, destinationCoords]);
 
   const handleNext = () => {
     if (view === "confirmed") {
@@ -36,11 +83,20 @@ export default function OrderStatus({ orderId, initialView = "confirmed" }: Orde
   };
 
   const currentStep = order?.status ?? (view === "tracking" ? 2 : 0);
+  const displayDuration = liveEta ? liveEta.durationText : (isRide ? "4 min" : "18 min");
+  const displayDistance = liveEta?.distanceText;
 
   return (
     <div className="status-page">
       <div className="status-map">
-        <MapArt etaText={isRide ? "4 min" : "18 min"} etaUnit="away" />
+        <MapArt
+          origin={originCoords}
+          destination={destinationCoords}
+          driver={driverCoords}
+          etaText={displayDuration}
+          etaUnit="away"
+          onEtaCalculated={setLiveEta}
+        />
         <div className="status-top">
           <Logo />
           <button
@@ -64,12 +120,14 @@ export default function OrderStatus({ orderId, initialView = "confirmed" }: Orde
               : "We're on it!"
             : isRide
             ? "You're on your way"
-            : "Arriving in 18 minutes"}
+            : `Arriving in ${displayDuration}`}
         </h1>
         <p>
           {view === "confirmed"
             ? "Everything is set. We'll keep you updated with real-time status."
-            : "Your RoadRider partner is moving smoothly toward the destination."}
+            : restaurant
+            ? `Dispatched from ${restaurant.name} (${restaurant.address}) · ${displayDistance ? `${displayDistance} away via Google Maps` : "Live Google Maps route"}.`
+            : `Your RoadRider partner is moving smoothly toward the destination${displayDistance ? ` (${displayDistance})` : ""}.`}
         </p>
 
         <div className="partner">

@@ -47,6 +47,8 @@ export type Restaurant = {
   detailRating: number;
   discount: string;
   photo: string;
+  address: string;
+  coords: { lat: number; lng: number };
   menu: MenuItem[];
 };
 
@@ -61,6 +63,8 @@ export const RESTAURANTS: Restaurant[] = [
     detailRating: 4.8,
     discount: "20% OFF",
     photo: PHOTOS.food2,
+    address: "Mayfair Building, Hazratganj, Lucknow",
+    coords: { lat: 26.8512, lng: 80.949 },
     menu: [
       {
         id: "rbh-lucknowi-biryani",
@@ -118,6 +122,8 @@ export const RESTAURANTS: Restaurant[] = [
     detailRating: 4.9,
     discount: "30% OFF",
     photo: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+    address: "Vibhuti Khand, Gomti Nagar, Lucknow",
+    coords: { lat: 26.8625, lng: 81.0028 },
     menu: [
       {
         id: "pr-margherita",
@@ -175,6 +181,8 @@ export const RESTAURANTS: Restaurant[] = [
     detailRating: 4.7,
     discount: "₹100 OFF",
     photo: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80",
+    address: "Kapoorthala Complex, Aliganj, Lucknow",
+    coords: { lat: 26.8835, lng: 80.9412 },
     menu: [
       {
         id: "bc-chicken-crispy",
@@ -224,6 +232,8 @@ export const RESTAURANTS: Restaurant[] = [
     detailRating: 4.8,
     discount: "15% OFF",
     photo: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=800&q=80",
+    address: "Bhootnath Market, Indira Nagar, Lucknow",
+    coords: { lat: 26.8724, lng: 80.9856 },
     menu: [
       {
         id: "gd-schezwan-rice",
@@ -279,6 +289,8 @@ export const RESTAURANTS: Restaurant[] = [
     detailRating: 4.9,
     discount: "25% OFF",
     photo: "https://images.unsplash.com/photo-1610192244261-3f33de3f55e4?auto=format&fit=crop&w=800&q=80",
+    address: "Nazirabad Road, Aminabad, Lucknow",
+    coords: { lat: 26.8437, lng: 80.9262 },
     menu: [
       {
         id: "dd-masala-dosa",
@@ -385,11 +397,40 @@ export const PACKAGE_TYPES: PackageType[] = [
   { id: "large", abbr: "L", name: "Large box", weight: "Up to 10 kg", range: "₹249 – ₹289", time: "45–60 min", price: 269 },
 ];
 
+/* ---------- Grocery Hub ---------- */
+export const GROCERY_HUB = {
+  id: "roadrider-fresh",
+  name: "RoadRider Fresh Express Hub",
+  address: "Vikas Nagar, Lucknow",
+  coords: { lat: 26.879, lng: 80.957 },
+};
+
 /* ---------- Places ---------- */
-export type Place = { id: string; label: string; line: string; area: string; icon: "home" | "pin" };
+export type Place = {
+  id: string;
+  label: string;
+  line: string;
+  area: string;
+  icon: "home" | "pin";
+  coords?: { lat: number; lng: number };
+};
 export const SEED_PLACES: Place[] = [
-  { id: "home", label: "Home", line: "15, Shahnajaf Road, Hazratganj", area: "Hazratganj, Lucknow", icon: "home" },
-  { id: "work", label: "Work", line: "Vibhuti Khand, Gomti Nagar", area: "Gomti Nagar, Lucknow", icon: "pin" },
+  {
+    id: "home",
+    label: "Home",
+    line: "15, Shahnajaf Road, Hazratganj",
+    area: "Hazratganj, Lucknow",
+    icon: "home",
+    coords: { lat: 26.8467, lng: 80.9462 },
+  },
+  {
+    id: "work",
+    label: "Work",
+    line: "Vibhuti Khand, Gomti Nagar",
+    area: "Gomti Nagar, Lucknow",
+    icon: "pin",
+    coords: { lat: 26.8665, lng: 81.0063 },
+  },
 ];
 
 export const PARTNER = { name: "Arjun Singh", initials: "AS", rating: 4.9, trips: 820 };

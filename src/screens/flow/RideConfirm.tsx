@@ -15,10 +15,21 @@ export default function RideConfirm() {
   const opt =
     RIDE_OPTIONS.find((r) => r.id === state.ride.optionId) ?? RIDE_OPTIONS[1];
 
+  const pickupPlace = state.places.find((p) => p.id === state.ride.pickupId) ?? state.places[0];
+  const dropPlace = state.places.find((p) => p.id === state.ride.dropId) ?? state.places[1] ?? state.places[0];
+
+  const pickupCoords = pickupPlace?.coords ? { ...pickupPlace.coords, label: pickupPlace.label } : undefined;
+  const dropCoords = dropPlace?.coords ? { ...dropPlace.coords, label: dropPlace.label } : undefined;
+
   return (
     <div className="flow-page themed">
       <FlowHeader title="Confirm booking" />
-      <MapArt etaText={opt.eta} etaUnit="arrival" />
+      <MapArt
+        origin={pickupCoords}
+        destination={dropCoords}
+        etaText={opt.eta}
+        etaUnit="arrival"
+      />
 
       <div className="driver-preview">
         <span className="vehicle-icon">

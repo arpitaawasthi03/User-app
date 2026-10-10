@@ -2,7 +2,8 @@ import FlowHeader from "../../components/FlowHeader";
 import MapArt from "../../components/MapArt";
 import Button from "../../components/Button";
 import Icon from "../../components/Icon";
-import type { Service } from "../../data/demo";
+import { RESTAURANTS, GROCERY_HUB, type Service } from "../../data/demo";
+import { PRESET_COORDS } from "../../lib/googleMaps";
 import { useNav } from "../../navigation/Navigation";
 import { useApp } from "../../state/AppState";
 
@@ -13,6 +14,17 @@ interface DeliveryDetailsProps {
 export default function DeliveryDetails({ service }: DeliveryDetailsProps) {
   const { push } = useNav();
   const { state, setDefaultPlace, showToast } = useApp();
+
+  const currentCart = service === "food" || service === "grocery" ? state.carts[service] : null;
+  const store = service === "food"
+    ? RESTAURANTS.find((r) => r.id === currentCart?.storeId) || RESTAURANTS[0]
+    : service === "grocery"
+    ? GROCERY_HUB
+    : null;
+
+  const currentPlace = state.places.find((p) => p.id === state.defaultPlaceId) ?? state.places[0];
+  const originCoords = store ? { ...store.coords, label: store.name } : PRESET_COORDS.restaurant;
+  const destCoords = currentPlace?.coords ? { ...currentPlace.coords, label: currentPlace.label } : PRESET_COORDS.home;
 
   const handleSelectPlace = (id: string) => {
     setDefaultPlace(id);
@@ -32,7 +44,11 @@ export default function DeliveryDetails({ service }: DeliveryDetailsProps) {
       <FlowHeader title="Delivery details" />
 
       <div className="map-mini">
-        <MapArt />
+        <MapArt
+          origin={originCoords}
+          destination={destCoords}
+          etaText={service === "food" && "etaShort" in (store || {}) ? (store as any).etaShort : "20 min"}
+        />
       </div>
 
       <div className="section-heading">

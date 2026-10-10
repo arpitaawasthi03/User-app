@@ -46,6 +46,7 @@ export default function RidesHome() {
     push({ name: "rideConfirm" });
   };
 
+  const pickupPlace = placeById(state.ride.pickupId) ?? state.places[0];
   const dropPlace = placeById(state.ride.dropId);
 
   return (
@@ -71,6 +72,8 @@ export default function RidesHome() {
       </div>
 
       <MapArt
+        origin={pickupPlace?.coords}
+        destination={dropPlace?.coords}
         etaText={selectedOption.eta}
         etaUnit={dropPlace ? "to arrival" : "away"}
       />
