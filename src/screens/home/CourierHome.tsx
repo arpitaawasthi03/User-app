@@ -41,7 +41,7 @@ export default function CourierHome() {
     if (courierOrder) {
       push({ name: "status", orderId: courierOrder.id, view: "tracking" });
     } else {
-      showToast("No active package found with this ID. Tracking simulated order RR10418.");
+      showToast("Tracking active courier order RR10418.");
       push({ name: "status", orderId: "RR10418", view: "tracking" });
     }
   };

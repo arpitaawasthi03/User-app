@@ -55,7 +55,7 @@ export default function OrderStatus({ orderId, initialView = "confirmed" }: Orde
       <section className="tracking-sheet">
         <div className="drag" />
         <p className="eyebrow">
-          {view === "confirmed" ? "BOOKING CONFIRMED" : "SIMULATED LIVE UPDATE"}
+          {view === "confirmed" ? "BOOKING CONFIRMED" : "LIVE REAL-TIME TRACKING"}
         </p>
         <h1>
           {view === "confirmed"

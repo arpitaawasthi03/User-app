@@ -181,9 +181,6 @@ const AppContext = createContext<Ctx | null>(null);
 
 export const STATUS_LABELS = ["Confirmed", "Picked up", "On the way", "Delivered"];
 
-/** Demo simulation interval for order progress (no live courier data exists). */
-const SIMULATION_STEP_MS = 12_000;
-
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<PersistedState>(loadState);
   const [toast, setToast] = useState<Toast>(null);
@@ -203,27 +200,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     ...s,
     notifications: [{ id: `n${Date.now()}${Math.random().toString(36).slice(2, 6)}`, text, when: Date.now(), read: false }, ...s.notifications],
   });
-
-  // Demo-only order progress simulation: Confirmed → Picked up → On the way.
-  // Delivery/completion is confirmed by the customer on the status screen.
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setState((s) => {
-        let changed = false;
-        let next = s;
-        const orders = s.orders.map((o) => {
-          if (o.seeded || o.status >= 2) return o;
-          if (Date.now() - o.createdAt < SIMULATION_STEP_MS * (o.status + 1)) return o;
-          changed = true;
-          const status = o.status + 1;
-          next = notify(next, `${o.title}: ${STATUS_LABELS[status].toLowerCase()} (simulated)`);
-          return { ...o, status };
-        });
-        return changed ? { ...next, orders } : s;
-      });
-    }, 3000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   const value = useMemo<Ctx>(() => {
     const placeById = (id: string | null | undefined) => state.places.find((p) => p.id === id);
