@@ -7,7 +7,7 @@ import { useApp } from "../../state/AppState";
 import { isValidIndianMobile, normalisePhone, prettyPhone } from "../../lib/format";
 
 export default function PhoneLogin() {
-  const { push } = useNav();
+  const { push, back } = useNav();
   const { showToast } = useApp();
   const [phone, setPhone] = useState("98765 43210");
   const [error, setError] = useState("");
@@ -37,6 +37,9 @@ export default function PhoneLogin() {
 
   return (
     <main className="auth-page">
+      <button className="auth-back" onClick={back} aria-label="Go back">
+        <Icon name="back" />
+      </button>
       <Logo />
       <p className="auth-tag">MOVE · EAT · SHOP · DELIVER</p>
 

@@ -111,7 +111,7 @@ function seedState(): PersistedState {
       { id: "n2", text: "Wallet cashback of ₹25 received", when: now - 3 * 3_600_000, read: false },
       { id: "n1", text: "Courier partner reached the pickup", when: now - 20 * 60_000, read: true },
     ],
-    favorites: [],
+    favorites: ["royal-biryani-house", "dd-idli-vada", "gr-tomatoes"],
   };
 }
 
@@ -120,7 +120,14 @@ function loadState(): PersistedState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as PersistedState;
-      if (parsed && parsed.version === 1) return parsed;
+      if (parsed && parsed.version === 1) {
+        return {
+          ...parsed,
+          favorites: parsed.favorites && parsed.favorites.length > 0
+            ? parsed.favorites
+            : ["royal-biryani-house", "dd-idli-vada", "gr-tomatoes"],
+        };
+      }
     }
   } catch {
     /* corrupted storage falls back to seed */

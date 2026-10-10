@@ -33,6 +33,17 @@ export default function Header({ dark = false }: { dark?: boolean }) {
       <button
         type="button"
         className="icon-button"
+        aria-label="Favorites"
+        onClick={() => push({ name: "favorites" })}
+        style={state.favorites.length > 0 ? { color: "#ff6b4a" } : undefined}
+      >
+        <Icon name="heart" size={18} filled={state.favorites.length > 0} />
+        {state.favorites.length > 0 && <i style={{ background: "#ff4d2e" }} />}
+      </button>
+
+      <button
+        type="button"
+        className="icon-button"
         aria-label="Notifications"
         onClick={() => push({ name: "notifications" })}
       >

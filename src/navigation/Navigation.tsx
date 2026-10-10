@@ -21,10 +21,14 @@ export type Route =
   | { name: "places"; mode: PlacesMode }
   | { name: "addAddress"; mode: PlacesMode }
   | { name: "paymentMethods" }
+  | { name: "addPaymentMethod" }
+  | { name: "chatSupport"; orderId?: string }
+  | { name: "restaurantsList"; cuisine?: string }
   | { name: "help"; orderId?: string }
   | { name: "orderDetail"; orderId: string }
   | { name: "profile" }
   | { name: "addMoney" }
+  | { name: "favorites" }
   | { name: "transactions" };
 
 export const TAB_NAMES: TabName[] = ["home", "navcart", "wallet", "orders", "account"];

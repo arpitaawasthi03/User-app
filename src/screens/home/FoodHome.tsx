@@ -13,6 +13,7 @@ import {
 } from "../../data/demo";
 import { useNav } from "../../navigation/Navigation";
 import { useApp } from "../../state/AppState";
+import { rupees } from "../../lib/pricing";
 
 export default function FoodHome() {
   const { push } = useNav();
@@ -20,25 +21,62 @@ export default function FoodHome() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showMoreCuisines, setShowMoreCuisines] = useState(false);
+  const [filterOnlyLiked, setFilterOnlyLiked] = useState(false);
 
   const handleSelectService = (s: Service) => {
     setService(s);
   };
 
-  const restaurant = RESTAURANTS[0];
-  const isFavorite = state.favorites.includes(restaurant.id);
+  // Aggregated preview list for "Your favorites" slider
+  const favRestaurants = RESTAURANTS.filter((r) => state.favorites.includes(r.id));
+  const favDishes: { id: string; name: string; price: number; restaurant: typeof RESTAURANTS[0] }[] = [];
+  for (const r of RESTAURANTS) {
+    for (const m of r.menu) {
+      if (state.favorites.includes(m.id)) {
+        favDishes.push({ id: m.id, name: m.name, price: m.price, restaurant: r });
+      }
+    }
+  }
 
-  const matchesSearch =
-    !search.trim() ||
-    restaurant.name.toLowerCase().includes(search.toLowerCase()) ||
-    restaurant.cuisines.some((c) => c.toLowerCase().includes(search.toLowerCase())) ||
-    restaurant.menu.some((m) => m.name.toLowerCase().includes(search.toLowerCase()));
+  const favoritePreviews = [
+    ...favRestaurants.map((r) => ({
+      id: r.id,
+      title: r.name,
+      subtitle: r.cuisines.join(" · "),
+      meta: `⭐ ${r.rating} · ${r.eta}`,
+      tag: "RESTAURANT",
+      photo: r.photo,
+      onClick: () => push({ name: "detail", service: "food", storeId: r.id }),
+    })),
+    ...favDishes.map((d) => ({
+      id: d.id,
+      title: d.name,
+      subtitle: d.restaurant.name,
+      meta: rupees(d.price),
+      tag: "DISH",
+      photo: d.restaurant.photo,
+      onClick: () => push({ name: "detail", service: "food", storeId: d.restaurant.id }),
+    })),
+  ];
 
-  const matchesCategory =
-    !activeCategory ||
-    restaurant.cuisines.some((c) => c.toLowerCase() === activeCategory.toLowerCase());
+  const matchingRestaurants = RESTAURANTS.filter((r) => {
+    const matchesSearch =
+      !search.trim() ||
+      r.name.toLowerCase().includes(search.toLowerCase()) ||
+      r.cuisines.some((c) => c.toLowerCase().includes(search.toLowerCase())) ||
+      r.menu.some((m) => m.name.toLowerCase().includes(search.toLowerCase()));
 
-  const isVisible = matchesSearch && matchesCategory;
+    const matchesCategory =
+      !activeCategory ||
+      r.cuisines.some((c) => c.toLowerCase() === activeCategory.toLowerCase());
+
+    const matchesLiked =
+      !filterOnlyLiked ||
+      state.favorites.includes(r.id) ||
+      r.menu.some((m) => state.favorites.includes(m.id));
+
+    return matchesSearch && matchesCategory && matchesLiked;
+  });
 
   const handleApplyPromo = (code: string) => {
     applyPromo("food", code);
@@ -71,6 +109,86 @@ export default function FoodHome() {
           onFilter={() => setShowMoreCuisines((v) => !v)}
         />
 
+        {/* Your Favorites Section */}
+        {favoritePreviews.length > 0 && (
+          <div style={{ marginTop: 14, marginBottom: 8 }}>
+            <div className="section-heading" style={{ margin: "10px 0 10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ color: "#ff5232", fontSize: 13 }}>❤️</span>
+                <h2>Your favorites</h2>
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 800,
+                    background: "#381c16",
+                    color: "var(--accent)",
+                    padding: "2px 7px",
+                    borderRadius: 10,
+                  }}
+                >
+                  {favoritePreviews.length}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => push({ name: "favorites" })}
+              >
+                See all
+              </button>
+            </div>
+
+            <div className="home-fav-slider">
+              {favoritePreviews.map((fav) => (
+                <div
+                  key={fav.id}
+                  className="home-fav-card"
+                  onClick={fav.onClick}
+                >
+                  <div
+                    className="thumb"
+                    style={{ backgroundImage: `url(${fav.photo})` }}
+                  >
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: 6,
+                        right: 6,
+                        background: "rgba(0,0,0,0.55)",
+                        borderRadius: "50%",
+                        width: 22,
+                        height: 22,
+                        display: "grid",
+                        placeItems: "center",
+                        color: "#ff5232",
+                      }}
+                    >
+                      <Icon name="heart" size={12} filled />
+                    </span>
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: 5,
+                        left: 6,
+                        background: "rgba(0,0,0,0.65)",
+                        borderRadius: 4,
+                        padding: "2px 5px",
+                        fontSize: 7.5,
+                        fontWeight: 700,
+                        color: "#fff",
+                      }}
+                    >
+                      {fav.tag}
+                    </span>
+                  </div>
+                  <strong>{fav.title}</strong>
+                  <small>{fav.subtitle}</small>
+                  <b>{fav.meta}</b>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="section-heading">
           <h2>What are you craving?</h2>
         </div>
@@ -82,22 +200,17 @@ export default function FoodHome() {
               <button
                 key={label}
                 type="button"
+                className={selected ? "selected" : ""}
                 onClick={() => setActiveCategory(selected ? null : label)}
-                style={
-                  selected
-                    ? { outline: "2px solid var(--accent)", borderRadius: "50%" }
-                    : undefined
-                }
               >
                 <span>{icon}</span>
-                <small style={selected ? { color: "#fff", fontWeight: 700 } : undefined}>
-                  {label}
-                </small>
+                <small>{label}</small>
               </button>
             );
           })}
           <button
             type="button"
+            className={showMoreCuisines ? "selected" : ""}
             onClick={() => setShowMoreCuisines((v) => !v)}
           >
             <span>＋</span>
@@ -138,57 +251,90 @@ export default function FoodHome() {
           </div>
         )}
 
-        <div className="section-heading">
-          <h2>Popular near you</h2>
+        <div className="section-heading" style={{ marginTop: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <h2>Popular near you</h2>
+            {state.favorites.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setFilterOnlyLiked((v) => !v)}
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  padding: "3px 8px",
+                  borderRadius: 12,
+                  border: filterOnlyLiked ? "1px solid var(--accent)" : "1px solid rgba(255,255,255,0.2)",
+                  background: filterOnlyLiked ? "var(--accent)" : "transparent",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                ❤️ Liked ({state.favorites.length})
+              </button>
+            )}
+          </div>
           <button
             type="button"
             onClick={() => {
-              setSearch("");
-              setActiveCategory(null);
+              if (search || activeCategory || filterOnlyLiked) {
+                setSearch("");
+                setActiveCategory(null);
+                setFilterOnlyLiked(false);
+              } else {
+                push({ name: "restaurantsList" });
+              }
             }}
           >
-            {search || activeCategory ? "Reset filter" : "See all"}
+            {search || activeCategory || filterOnlyLiked ? "Reset filter" : "See all"}
           </button>
         </div>
 
-        {isVisible ? (
-          <button
-            type="button"
-            className="restaurant-card"
-            onClick={() =>
-              push({ name: "detail", service: "food", storeId: restaurant.id })
-            }
-          >
-            <div
-              className="restaurant-photo"
-              style={{ backgroundImage: `url(${restaurant.photo})` }}
-            >
-              <span className="discount">{restaurant.discount}</span>
-              <span
-                className="heart"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(restaurant.id);
-                }}
-              >
-                <Icon
-                  name="heart"
-                  size={17}
-                  filled={isFavorite}
-                />
-              </span>
-              <p>{restaurant.etaShort}</p>
-            </div>
-            <div className="restaurant-info">
-              <div>
-                <h3>{restaurant.name}</h3>
-                <p>{restaurant.cuisines.join(" · ")}</p>
-              </div>
-              <span className="rating">
-                <Icon name="star" size={11} filled /> {restaurant.rating}
-              </span>
-            </div>
-          </button>
+        {matchingRestaurants.length > 0 ? (
+          <div style={{ display: "grid", gap: 14 }}>
+            {matchingRestaurants.map((restaurant) => {
+              const isFav = state.favorites.includes(restaurant.id);
+              return (
+                <button
+                  key={restaurant.id}
+                  type="button"
+                  className="restaurant-card"
+                  onClick={() =>
+                    push({ name: "detail", service: "food", storeId: restaurant.id })
+                  }
+                >
+                  <div
+                    className="restaurant-photo"
+                    style={{ backgroundImage: `url(${restaurant.photo})` }}
+                  >
+                    <span className="discount">{restaurant.discount}</span>
+                    <span
+                      className="heart"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(restaurant.id);
+                      }}
+                    >
+                      <Icon
+                        name="heart"
+                        size={17}
+                        filled={isFav}
+                      />
+                    </span>
+                    <p>{restaurant.etaShort}</p>
+                  </div>
+                  <div className="restaurant-info">
+                    <div>
+                      <h3>{restaurant.name}</h3>
+                      <p>{restaurant.cuisines.join(" · ")}</p>
+                    </div>
+                    <span className="rating">
+                      <Icon name="star" size={11} filled /> {restaurant.rating}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         ) : (
           <div
             style={{

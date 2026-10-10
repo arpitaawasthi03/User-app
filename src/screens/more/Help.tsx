@@ -9,7 +9,7 @@ interface HelpProps {
 }
 
 export default function Help({ orderId }: HelpProps) {
-  const { back } = useNav();
+  const { back, push } = useNav();
   const { showToast } = useApp();
 
   return (
@@ -32,7 +32,7 @@ export default function Help({ orderId }: HelpProps) {
       <div className="more-list">
         <button
           type="button"
-          onClick={() => showToast("Connecting to RoadRider live support chat (simulated)...")}
+          onClick={() => push({ name: "chatSupport", orderId })}
         >
           <span>
             <Icon name="user" size={15} />

@@ -57,7 +57,7 @@ export default function PaymentMethods() {
 
         <button
           type="button"
-          onClick={() => showToast("Adding new UPI or cards requires payment gateway configuration.")}
+          onClick={() => push({ name: "addPaymentMethod" })}
           style={{ background: "#fbf9f6" }}
         >
           <span>

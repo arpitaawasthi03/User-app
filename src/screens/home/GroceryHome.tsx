@@ -94,15 +94,11 @@ export default function GroceryHome() {
             <button
               key={label}
               type="button"
+              className={isSelected ? "selected" : ""}
               onClick={() => setActiveCategory(isSelected ? null : label)}
-              style={
-                isSelected
-                  ? { outline: "2px solid var(--accent)", borderRadius: "50%" }
-                  : undefined
-              }
             >
               <span>{abbr}</span>
-              <small style={isSelected ? { color: "#225e39", fontWeight: 700 } : undefined}>
+              <small>
                 {label}
               </small>
             </button>

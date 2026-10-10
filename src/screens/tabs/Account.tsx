@@ -26,6 +26,7 @@ export default function Account() {
   };
 
   const menuItems = [
+    { icon: "heart", label: `Your favorites (${state.favorites.length})`, route: { name: "favorites" as const } },
     { icon: "pin", label: "Saved addresses", route: { name: "places" as const, mode: "manage" as const } },
     { icon: "card", label: "Payment methods", route: { name: "paymentMethods" as const } },
     { icon: "box", label: "Your orders", route: { name: "orders" as const } },

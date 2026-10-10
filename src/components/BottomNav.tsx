@@ -9,6 +9,7 @@ interface BottomNavProps {
 
 export default function BottomNav({ active, count, onSelect }: BottomNavProps) {
   const items: [TabName, string, string][] = [
+    ["home", "home", "Home"],
     ["navcart", "cart", "Cart"],
     ["wallet", "wallet", "Wallet"],
     ["orders", "list", "Orders"],
