@@ -2,15 +2,12 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { SafeAreaView, StyleSheet, Text, View, ScrollView } from "react-native";
 import type {
   RootStackParamList,
   BottomTabParamList,
   TabName,
 } from "./types";
 import { useApp } from "../state/AppState";
-import { useNav } from "./Navigation";
-import { colors } from "../theme/tokens";
 
 // Auth Screens
 import Splash from "../screens/auth/Splash";
@@ -32,19 +29,29 @@ import Payment from "../screens/flow/Payment";
 import OrderStatus from "../screens/flow/OrderStatus";
 import OrderComplete from "../screens/flow/OrderComplete";
 
-// Auxiliary Screens
+// Tab Screens
+import NavCart from "../screens/tabs/NavCart";
+import Wallet from "../screens/tabs/Wallet";
+import Orders from "../screens/tabs/Orders";
+import Account from "../screens/tabs/Account";
+
+// Auxiliary & More Screens
 import AddAddress from "../screens/more/AddAddress";
 import Help from "../screens/more/Help";
 import PaymentMethods from "../screens/more/PaymentMethods";
 import AddMoney from "../screens/more/AddMoney";
 import Places from "../screens/more/Places";
+import Notifications from "../screens/more/Notifications";
+import AddPaymentMethod from "../screens/more/AddPaymentMethod";
+import ChatSupport from "../screens/more/ChatSupport";
+import RestaurantsList from "../screens/more/RestaurantsList";
+import OrderDetail from "../screens/more/OrderDetail";
+import Profile from "../screens/more/Profile";
+import Transactions from "../screens/more/Transactions";
+import Favorites from "../screens/more/Favorites";
 
 // Shared Components
-import UtilityHeader from "../components/UtilityHeader";
-import BillSummary from "../components/BillSummary";
-import Button from "../components/Button";
 import BottomNav from "../components/BottomNav";
-import FlowHeader from "../components/FlowHeader";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<BottomTabParamList>();
@@ -67,118 +74,6 @@ function HomeServiceDispatcher() {
     default:
       return <FoodHome />;
   }
-}
-
-function CartTabScreen() {
-  const { push } = useNav();
-  return (
-    <SafeAreaView style={styles.screen}>
-      <UtilityHeader title="Your Cart" subtitle="Checkout" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <BillSummary service="food" />
-        <View style={styles.btnPad}>
-          <Button onPress={() => push({ name: "payment", service: "food" })}>
-            Proceed to Payment
-          </Button>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function WalletTabScreen() {
-  const { state } = useApp();
-  const { push } = useNav();
-  return (
-    <SafeAreaView style={styles.screen}>
-      <UtilityHeader title="Wallet" subtitle="Balances & Top-up" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.cardPad}>
-          <Text style={styles.balanceLabel}>AVAILABLE BALANCE</Text>
-          <Text style={styles.balanceValue}>₹{state.wallet.balance}</Text>
-          <Button
-            secondary
-            onPress={() => push({ name: "addMoney" })}
-            style={{ marginTop: 14 }}
-          >
-            + Add Money
-          </Button>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function OrdersTabScreen() {
-  const { state } = useApp();
-  const { push } = useNav();
-  return (
-    <SafeAreaView style={styles.screen}>
-      <UtilityHeader title="Orders" subtitle="Activity" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {state.orders.map((o) => (
-          <View key={o.id} style={styles.orderCard}>
-            <View style={styles.orderRow}>
-              <Text style={styles.orderTitle}>{o.title}</Text>
-              <Text style={styles.orderPrice}>₹{o.bill.toPay}</Text>
-            </View>
-            <Text style={styles.orderSub}>{o.subtitle}</Text>
-            <Button
-              secondary
-              onPress={() => push({ name: "orderDetail", orderId: o.id })}
-              style={{ height: 38, marginTop: 10 }}
-            >
-              View Receipt
-            </Button>
-          </View>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function AccountTabScreen() {
-  const { state, signOut } = useApp();
-  const { push } = useNav();
-  return (
-    <SafeAreaView style={styles.screen}>
-      <UtilityHeader title="Account" subtitle="Settings" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.cardPad}>
-          <Text style={styles.profileName}>{state.profile.name}</Text>
-          <Text style={styles.profileSub}>
-            {state.profile.phone || "+91 98765 43210"}
-          </Text>
-        </View>
-        <View style={styles.btnPad}>
-          <Button
-            secondary
-            onPress={() => push({ name: "places", mode: "manage" })}
-            style={{ marginBottom: 10 }}
-          >
-            Saved Addresses
-          </Button>
-          <Button
-            secondary
-            onPress={() => push({ name: "paymentMethods" })}
-            style={{ marginBottom: 10 }}
-          >
-            Payment Methods
-          </Button>
-          <Button
-            secondary
-            onPress={() => push({ name: "help" })}
-            style={{ marginBottom: 10 }}
-          >
-            Help & Support
-          </Button>
-          <Button onPress={signOut} style={{ backgroundColor: colors.muted }}>
-            Sign Out
-          </Button>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
 }
 
 /**
@@ -205,37 +100,11 @@ function MainTabsNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="home" component={HomeServiceDispatcher} />
-      <Tab.Screen name="navcart" component={CartTabScreen} />
-      <Tab.Screen name="wallet" component={WalletTabScreen} />
-      <Tab.Screen name="orders" component={OrdersTabScreen} />
-      <Tab.Screen name="account" component={AccountTabScreen} />
+      <Tab.Screen name="navcart" component={NavCart} />
+      <Tab.Screen name="wallet" component={Wallet} />
+      <Tab.Screen name="orders" component={Orders} />
+      <Tab.Screen name="account" component={Account} />
     </Tab.Navigator>
-  );
-}
-
-/**
- * Generic Modal/Stack Screen Shell for secondary routes
- */
-function GenericScreenShell({
-  title,
-  children,
-}: {
-  title: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <SafeAreaView style={styles.screen}>
-      <FlowHeader title={title} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {children ?? (
-          <View style={styles.cardPad}>
-            <Text style={styles.placeholderText}>
-              Native {title} screen ready for Phase 4 implementation.
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
   );
 }
 
@@ -321,115 +190,35 @@ export default function RootNavigator() {
         </Stack.Screen>
 
         {/* Secondary Remaining Routes */}
-        <Stack.Screen name="notifications">
-          {() => <GenericScreenShell title="Notifications" />}
-        </Stack.Screen>
+        <Stack.Screen name="notifications" component={Notifications} />
         <Stack.Screen name="places">
           {({ route }: any) => (
             <Places mode={route.params?.mode || "manage"} />
           )}
         </Stack.Screen>
-        <Stack.Screen name="addPaymentMethod">
-          {() => <GenericScreenShell title="Add Payment Method" />}
-        </Stack.Screen>
+        <Stack.Screen
+          name="addPaymentMethod"
+          component={AddPaymentMethod}
+        />
         <Stack.Screen name="chatSupport">
-          {() => <GenericScreenShell title="Chat Support" />}
+          {({ route }: any) => (
+            <ChatSupport orderId={route.params?.orderId} />
+          )}
         </Stack.Screen>
         <Stack.Screen name="restaurantsList">
-          {() => <GenericScreenShell title="Restaurants" />}
+          {({ route }: any) => (
+            <RestaurantsList cuisine={route.params?.cuisine} />
+          )}
         </Stack.Screen>
         <Stack.Screen name="orderDetail">
-          {() => <GenericScreenShell title="Order Receipt" />}
+          {({ route }: any) => (
+            <OrderDetail orderId={route.params?.orderId || ""} />
+          )}
         </Stack.Screen>
-        <Stack.Screen name="profile">
-          {() => <GenericScreenShell title="Profile Settings" />}
-        </Stack.Screen>
-        <Stack.Screen name="favorites">
-          {() => <GenericScreenShell title="Favorites" />}
-        </Stack.Screen>
-        <Stack.Screen name="transactions">
-          {() => <GenericScreenShell title="Transactions" />}
-        </Stack.Screen>
+        <Stack.Screen name="profile" component={Profile} />
+        <Stack.Screen name="favorites" component={Favorites} />
+        <Stack.Screen name="transactions" component={Transactions} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.canvas,
-  },
-  scrollContent: {
-    paddingBottom: 32,
-  },
-  cardPad: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 20,
-    marginHorizontal: 16,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.05)",
-  },
-  btnPad: {
-    paddingHorizontal: 16,
-    marginTop: 8,
-  },
-  balanceLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.muted,
-    letterSpacing: 1.2,
-  },
-  balanceValue: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: colors.ink,
-    marginTop: 6,
-  },
-  orderCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.05)",
-  },
-  orderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  orderTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.ink,
-  },
-  orderPrice: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.accent,
-  },
-  orderSub: {
-    fontSize: 12,
-    color: colors.muted,
-    marginTop: 4,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.ink,
-  },
-  profileSub: {
-    fontSize: 13,
-    color: colors.muted,
-    marginTop: 4,
-  },
-  placeholderText: {
-    fontSize: 13,
-    color: colors.muted,
-    textAlign: "center",
-  },
-});
