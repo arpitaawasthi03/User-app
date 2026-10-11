@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import ServiceTabs from "../../components/ServiceTabs";
 import LocationRows from "../../components/LocationRows";
 import Button from "../../components/Button";
 import Icon from "../../components/Icon";
 import { PACKAGE_TYPES, PHOTOS, type Service } from "../../data/demo";
+import { fetchPackageTypes } from "../../lib/supabaseData";
 import { useNav } from "../../navigation/Navigation";
 import { useApp } from "../../state/AppState";
 
@@ -13,9 +14,22 @@ export default function CourierHome() {
   const { setService, state, setCourier, showToast } = useApp();
   const [segment, setSegment] = useState<"send" | "track">("send");
   const [trackInput, setTrackInput] = useState("");
+  const [packageTypes, setPackageTypes] = useState<typeof PACKAGE_TYPES>(PACKAGE_TYPES);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchPackageTypes().then((types) => {
+      if (isMounted && types.length > 0) {
+        setPackageTypes(types);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const selectedPackage =
-    PACKAGE_TYPES.find((p) => p.id === state.courier.packageId) ?? PACKAGE_TYPES[1];
+    packageTypes.find((p) => p.id === state.courier.packageId) ?? packageTypes[0];
 
   const handleSelectService = (s: Service) => {
     setService(s);
@@ -92,7 +106,7 @@ export default function CourierHome() {
             </div>
 
             <div className="package-grid">
-              {PACKAGE_TYPES.map((pkg) => {
+              {packageTypes.map((pkg) => {
                 const isSelected = pkg.id === selectedPackage.id;
                 return (
                   <button

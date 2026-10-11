@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import FlowHeader from "../../components/FlowHeader"
 import SearchBar from "../../components/SearchBar"
 import Icon from "../../components/Icon"
 import { RESTAURANTS, FOOD_CATEGORIES } from "../../data/demo"
+import { fetchCuisines } from "../../lib/supabaseData"
 import { useNav } from "../../navigation/Navigation"
 import { useApp } from "../../state/AppState"
 
@@ -19,12 +20,23 @@ export default function RestaurantsList({ cuisine }: RestaurantsListProps) {
     cuisine ?? null,
   )
   const [sortBy, setSortBy] = useState<"rating" | "eta">("rating")
-
-  const allCuisines = [
+  const [allCuisines, setAllCuisines] = useState<string[]>([
     "All",
     ...FOOD_CATEGORIES.map((c) => c.label),
     "South Indian",
-  ]
+  ])
+
+  useEffect(() => {
+    let isMounted = true
+    fetchCuisines().then((res) => {
+      if (isMounted && res.length > 0) {
+        setAllCuisines(["All", ...res])
+      }
+    })
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const filtered = RESTAURANTS.filter((r) => {
     const matchesSearch =

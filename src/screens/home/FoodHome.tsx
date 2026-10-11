@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import ServiceTabs from "../../components/ServiceTabs";
 import SearchBar from "../../components/SearchBar";
@@ -11,6 +11,7 @@ import {
   serviceMeta,
   type Service,
 } from "../../data/demo";
+import { fetchCuisines } from "../../lib/supabaseData";
 import { useNav } from "../../navigation/Navigation";
 import { useApp } from "../../state/AppState";
 import { rupees } from "../../lib/pricing";
@@ -22,6 +23,19 @@ export default function FoodHome() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showMoreCuisines, setShowMoreCuisines] = useState(false);
   const [filterOnlyLiked, setFilterOnlyLiked] = useState(false);
+  const [cuisinesList, setCuisinesList] = useState<string[]>(MORE_CUISINES);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchCuisines().then((res) => {
+      if (isMounted && res.length > 0) {
+        setCuisinesList(res);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSelectService = (s: Service) => {
     setService(s);
@@ -230,7 +244,7 @@ export default function FoodHome() {
               borderRadius: 12,
             }}
           >
-            {MORE_CUISINES.map((cuisine) => (
+            {cuisinesList.map((cuisine) => (
               <button
                 key={cuisine}
                 type="button"
