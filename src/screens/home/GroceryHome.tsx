@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import ServiceTabs from "../../components/ServiceTabs";
 import SearchBar from "../../components/SearchBar";
@@ -9,6 +9,7 @@ import {
   PRODUCTS,
   type Service,
 } from "../../data/demo";
+import { fetchGroceryProducts } from "../../lib/supabaseData";
 import { useNav } from "../../navigation/Navigation";
 import { useApp } from "../../state/AppState";
 import { rupees } from "../../lib/pricing";
@@ -18,12 +19,25 @@ export default function GroceryHome() {
   const { setService, state, toggleFavorite, addToCart, showToast } = useApp();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [productsList, setProductsList] = useState<typeof PRODUCTS>(PRODUCTS);
 
   const handleSelectService = (s: Service) => {
     setService(s);
   };
 
-  const filteredProducts = PRODUCTS.filter((p) => {
+  useEffect(() => {
+    let isMounted = true;
+    fetchGroceryProducts().then((data) => {
+      if (isMounted && data.length > 0) {
+        setProductsList(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredProducts = productsList.filter((p) => {
     const matchesSearch =
       !search.trim() ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
